@@ -98,7 +98,10 @@ export function parseUnitStringToPriceCents(amount: string | null, isSingleUnit:
 }
 
 export function calculateFirstInstallmentPaymentPriceCents(priceCents: number, numberOfInstallments: number): number {
-  return Math.floor(priceCents / numberOfInstallments) + (priceCents % numberOfInstallments);
+  const basePrice = Math.floor(priceCents / numberOfInstallments);
+  const remainder = priceCents % numberOfInstallments;
+
+  return remainder > 0 ? basePrice + 1 : basePrice;
 }
 
 export const formatInstallmentPaymentSchedule = (
@@ -107,18 +110,24 @@ export const formatInstallmentPaymentSchedule = (
   numberOfInstallments: number,
 ) => {
   const baseInstallmentAmount = Math.floor(priceCents / numberOfInstallments);
+  const remainder = priceCents % numberOfInstallments;
   const baseInstallmentAmountFormatted = formatPriceCentsWithCurrencySymbol(currencyCode, baseInstallmentAmount, {
     symbolFormat: "short",
   });
 
-  if (priceCents % numberOfInstallments === 0) {
+  if (remainder === 0) {
     return `${numberOfInstallments} equal monthly installments of ${baseInstallmentAmountFormatted}`;
   }
 
-  const firstInstallmentAmount = baseInstallmentAmount + (priceCents % numberOfInstallments);
+  const firstInstallmentAmount = baseInstallmentAmount + 1;
   const firstInstallmentAmountFormatted = formatPriceCentsWithCurrencySymbol(currencyCode, firstInstallmentAmount, {
     symbolFormat: "short",
   });
+
+  const remainingInstallmentsWithExtra = remainder - 1;
+  if (remainingInstallmentsWithExtra > 0) {
+    return `${remainder} installments of ${firstInstallmentAmountFormatted}, followed by ${numberOfInstallments - remainder} installments of ${baseInstallmentAmountFormatted}`;
+  }
 
   return `First installment of ${firstInstallmentAmountFormatted}, followed by ${numberOfInstallments - 1} monthly installments of ${baseInstallmentAmountFormatted}`;
 };

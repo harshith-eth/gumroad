@@ -52,7 +52,11 @@ class ProductInstallmentPlan < ApplicationRecord
     remainder = full_price_cents % number_of_installments
 
     Array.new(number_of_installments) do |i|
-      i.zero? ? base_price + remainder : base_price
+      if i < remainder
+        base_price + 1
+      else
+        base_price
+      end
     end
   end
 
